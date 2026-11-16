@@ -13,6 +13,8 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.32" />
     <PackageReference Include="Npgsql" Version="4.1.13" />
     <Resource Include="Images/*.png" />
+    <Content Include="Images/Phones/*" CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

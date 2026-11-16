@@ -18,6 +18,7 @@
         </Style>
     </Window.Resources>
     <Grid>
+      <Grid x:Name="phoneListPanel">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="5*" />
@@ -30,7 +31,20 @@
 
         <DataGrid x:Name="mainDataGridView" Grid.Column="1" Margin="0,12,0,0"
                   AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False"
-                  HeadersVisibility="Column" SelectionMode="Single" FontSize="16">
+                  HeadersVisibility="Column" SelectionMode="Single" FontSize="16"
+                  ContextMenuOpening="PhoneMenu_Opening">
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Подробнее" Click="Details_Click" />
+                    <MenuItem Header="Редактировать" Click="EditButton_Click" />
+                    <MenuItem Header="Удалить" Click="RemoveButton_Click" />
+                </ContextMenu>
+            </DataGrid.ContextMenu>
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <EventSetter Event="MouseDoubleClick" Handler="Details_Click" />
+                </Style>
+            </DataGrid.RowStyle>
             <DataGrid.Columns>
                 <DataGridTemplateColumn Width="56" CanUserSort="False">
                     <DataGridTemplateColumn.CellTemplate>
@@ -60,5 +74,9 @@
                 AutomationProperties.Name="Добавить телефон" ToolTip="Добавить телефон">
             <Image Source="Images/add.png" Width="44" Height="44" />
         </Button>
+      </Grid>
+
+      <Frame x:Name="mainFrame" Visibility="Collapsed" NavigationUIVisibility="Hidden"
+             JournalOwnership="OwnsJournal" Navigated="MainFrame_Navigated" />
     </Grid>
 </Window>

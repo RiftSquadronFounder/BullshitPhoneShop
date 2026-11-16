@@ -1,3 +1,4 @@
+using System.IO;
 using Microsoft.EntityFrameworkCore;
 
 namespace BullshitPhoneShop
@@ -7,7 +8,32 @@ namespace BullshitPhoneShop
         public static void InitializeDatabase()
         {
             using var context = new DbAppContext();
-            context.Database.EnsureCreated();
+            if (context.Database.EnsureCreated())
+                return;
+
+            using var transaction = context.Database.BeginTransaction();
+            context.Database.ExecuteSqlRaw(
+                "ALTER TABLE \"Phones\" ADD COLUMN IF NOT EXISTS \"Definition\" text NOT NULL DEFAULT '', " +
+                $"ADD COLUMN IF NOT EXISTS \"Image\" text NOT NULL DEFAULT '{Phone.DefaultImage}'");
+
+            var samples = DbAppContext.SamplePhones.ToDictionary(phone => phone.Id);
+            int[] sampleIds = samples.Keys.ToArray();
+            foreach (Phone phone in context.Phones.Where(phone => sampleIds.Contains(phone.Id)))
+            {
+                Phone sample = samples[phone.Id];
+                if (phone.Title != sample.Title || phone.CompanyId != sample.CompanyId)
+                    continue;
+
+                if (string.IsNullOrWhiteSpace(phone.Definition))
+                    phone.Definition = sample.Definition;
+
+                if (string.IsNullOrWhiteSpace(phone.Image) || phone.Image == Phone.DefaultImage
+                    || (Path.GetFileName(phone.Image) == Path.GetFileName(sample.Image) && !File.Exists(phone.Image)))
+                    phone.Image = sample.Image;
+            }
+
+            context.SaveChanges();
+            transaction.Commit();
         }
 
         public static List<Phone> GetPhonesForView()
