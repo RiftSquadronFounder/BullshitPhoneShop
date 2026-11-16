@@ -58,7 +58,8 @@ namespace BullshitPhoneShop
             phones.Property(phone => phone.Id).UseIdentityByDefaultColumn().HasIdentityOptions(startValue: 5);
             phones.Property(phone => phone.Title).IsRequired();
             phones.Property(phone => phone.Definition).HasDefaultValue(string.Empty).IsRequired();
-            phones.Property(phone => phone.Image).HasDefaultValue(Phone.DefaultImage).IsRequired();
+            phones.Property(phone => phone.Image).HasDefaultValue(Phone.DefaultImage).IsRequired()
+                .IsConcurrencyToken();
             phones.HasCheckConstraint("CK_Phones_Price", "\"Price\" >= 0");
             phones.HasOne(phone => phone.CompanyEntity)
                 .WithMany(company => company.PhoneEntities)

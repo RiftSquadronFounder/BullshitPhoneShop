@@ -3,14 +3,35 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              FontSize="14">
     <StackPanel>
-        <Label Content="_Название" Target="{Binding ElementName=titleView}" Padding="0,0,0,6" />
-        <TextBox x:Name="titleView" Height="30" VerticalContentAlignment="Center" />
-        <Label Content="_Компания" Target="{Binding ElementName=companyView}"
-               Padding="0,0,0,6" Margin="0,20,0,0" />
-        <ComboBox x:Name="companyView" Height="30" SelectedValuePath="Id" DisplayMemberPath="Title" />
-        <Label Content="_Цена" Target="{Binding ElementName=priceView}"
-               Padding="0,0,0,6" Margin="0,20,0,0" />
-        <TextBox x:Name="priceView" Height="30" VerticalContentAlignment="Center" />
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="30" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+                <Label Content="_Название" Target="{Binding ElementName=titleView}" Padding="0,0,0,6" />
+                <TextBox x:Name="titleView" Height="30" VerticalContentAlignment="Center" />
+                <Label Content="_Компания" Target="{Binding ElementName=companyView}"
+                       Padding="0,0,0,6" Margin="0,20,0,0" />
+                <ComboBox x:Name="companyView" Height="30" SelectedValuePath="Id" DisplayMemberPath="Title" />
+                <Label Content="_Цена" Target="{Binding ElementName=priceView}"
+                       Padding="0,0,0,6" Margin="0,20,0,0" />
+                <TextBox x:Name="priceView" Height="30" VerticalContentAlignment="Center" />
+                <StackPanel Orientation="Horizontal" Margin="0,30,0,0">
+                    <Label Content="Изображение" Padding="0" VerticalAlignment="Center" />
+                    <Button x:Name="selectImageButton" Content="Выбрать..." Height="30" Margin="16,0,0,0"
+                            Padding="5,0" Click="SelectImageButton_Click" />
+                </StackPanel>
+                <TextBlock x:Name="selectedImageName" Margin="0,5,0,0"
+                           TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" />
+            </StackPanel>
+            <StackPanel Grid.Column="2">
+                <Label Content="_Описание" Target="{Binding ElementName=definitionView}" Padding="0,0,0,6" />
+                <TextBox x:Name="definitionView" Height="270" AcceptsReturn="True" TextWrapping="Wrap"
+                         VerticalScrollBarVisibility="Auto" />
+            </StackPanel>
+        </Grid>
         <TextBlock x:Name="validationMessage" Margin="0,10,0,0" Foreground="DarkRed"
                    TextWrapping="Wrap" Visibility="Collapsed"
                    AutomationProperties.LiveSetting="Polite" />

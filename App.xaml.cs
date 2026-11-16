@@ -14,6 +14,11 @@ namespace BullshitPhoneShop
                 action();
                 return true;
             }
+            catch (PhoneImageException error)
+            {
+                MessageBox.Show(owner, error.Message, owner.Title, MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
             catch (Exception error) when (error is NpgsqlException or DbUpdateException or TimeoutException
                 or ArgumentException or IOException or UnauthorizedAccessException)
             {

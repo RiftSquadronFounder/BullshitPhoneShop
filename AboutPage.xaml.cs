@@ -28,13 +28,7 @@ namespace BullshitPhoneShop
 
             try
             {
-                var photo = new BitmapImage();
-                photo.BeginInit();
-                photo.CacheOption = BitmapCacheOption.OnLoad;
-                photo.DecodePixelHeight = 650;
-                photo.UriSource = uri;
-                photo.EndInit();
-                return photo;
+                return PhoneImages.Load(uri.LocalPath);
             }
             catch (Exception error) when (error is IOException or UnauthorizedAccessException
                 or NotSupportedException or FileFormatException)

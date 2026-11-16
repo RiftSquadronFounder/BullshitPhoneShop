@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using System.IO;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace BullshitPhoneShop
 {
@@ -53,14 +55,14 @@ namespace BullshitPhoneShop
                 .ToList();
         }
 
-        public static void AddPhone(Phone phone)
+        public static void AddPhone(Phone phone, string? imageSource = null)
         {
             using var context = new DbAppContext();
             context.Phones.Add(phone);
-            context.SaveChanges();
+            SavePhone(context, phone, imageSource);
         }
 
-        public static void UpdatePhone(Phone phone)
+        public static void UpdatePhone(Phone phone, string? imageSource = null)
         {
             using var context = new DbAppContext();
             Phone? storedPhone = context.Phones.FirstOrDefault(item => item.Id == phone.Id);
@@ -70,7 +72,12 @@ namespace BullshitPhoneShop
             storedPhone.Title = phone.Title;
             storedPhone.CompanyId = phone.CompanyId;
             storedPhone.Price = phone.Price;
-            context.SaveChanges();
+            storedPhone.Definition = phone.Definition;
+            string previousImage = storedPhone.Image;
+            SavePhone(context, storedPhone, imageSource);
+
+            if (imageSource is not null)
+                DeleteUnusedImage(previousImage);
         }
 
         public static void RemovePhone(int id)
@@ -82,6 +89,42 @@ namespace BullshitPhoneShop
 
             context.Phones.Remove(phone);
             context.SaveChanges();
+            DeleteUnusedImage(phone.Image);
+        }
+
+        private static void SavePhone(DbAppContext context, Phone phone, string? imageSource)
+        {
+            string? uploadedImage = imageSource is null ? null : PhoneImages.Import(imageSource);
+            if (uploadedImage is not null)
+                phone.Image = uploadedImage;
+
+            try
+            {
+                context.SaveChanges();
+            }
+            catch
+            {
+                DeleteUnusedImage(uploadedImage);
+                throw;
+            }
+        }
+
+        private static void DeleteUnusedImage(string? path)
+        {
+            if (path is null || !PhoneImages.Owns(path))
+                return;
+
+            try
+            {
+                using var context = new DbAppContext();
+                if (!context.Phones.Any(phone => phone.Image == path))
+                    PhoneImages.Delete(path);
+            }
+            catch (Exception error) when (error is NpgsqlException or TimeoutException
+                or ArgumentException or IOException or UnauthorizedAccessException)
+            {
+                Trace.TraceWarning("Could not check whether the phone image is still used: {0}", error.Message);
+            }
         }
     }
 }

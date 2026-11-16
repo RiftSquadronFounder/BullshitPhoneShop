@@ -16,7 +16,8 @@ namespace BullshitPhoneShop
         private void SaveEditButton_Click(object sender, RoutedEventArgs e)
         {
             Phone? phone = phoneForm.ReadPhone(phoneId);
-            if (phone is not null && App.TryDatabaseAction(this, () => DatabaseControl.UpdatePhone(phone)))
+            if (phone is not null && App.TryDatabaseAction(this,
+                () => DatabaseControl.UpdatePhone(phone, phoneForm.SelectedImagePath)))
                 DialogResult = true;
         }
     }

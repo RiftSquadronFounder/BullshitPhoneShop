@@ -1,10 +1,14 @@
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using Microsoft.Win32;
 
 namespace BullshitPhoneShop
 {
     public partial class PhoneForm : UserControl
     {
+        internal string? SelectedImagePath { get; private set; }
+
         public PhoneForm()
         {
             InitializeComponent();
@@ -19,6 +23,9 @@ namespace BullshitPhoneShop
             titleView.Text = phone.Title;
             companyView.SelectedValue = phone.CompanyId;
             priceView.Text = phone.Price.ToString();
+            definitionView.Text = phone.Definition;
+            if (!string.IsNullOrWhiteSpace(phone.Image) && phone.Image != Phone.DefaultImage)
+                selectedImageName.Text = "Изображение сохранено";
         }
 
         internal Phone? ReadPhone(int id = 0)
@@ -37,7 +44,26 @@ namespace BullshitPhoneShop
             }
 
             validationMessage.Visibility = Visibility.Collapsed;
-            return new Phone { Id = id, Title = title, CompanyId = companyId, Price = price };
+            return new Phone
+            {
+                Id = id, Title = title, CompanyId = companyId, Price = price,
+                Definition = definitionView.Text.Trim()
+            };
+        }
+
+        private void SelectImageButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new OpenFileDialog
+            {
+                Title = "Выберите изображение",
+                Filter = "Изображения JPEG и PNG (*.jpg;*.jpeg;*.png)|*.jpg;*.jpeg;*.png"
+            };
+
+            if (dialog.ShowDialog(Window.GetWindow(this)) == true)
+            {
+                SelectedImagePath = dialog.FileName;
+                selectedImageName.Text = Path.GetFileName(dialog.FileName);
+            }
         }
 
         private void ShowValidationMessage(string message)
