@@ -2,6 +2,20 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Телефоны" Height="450" Width="800" MinHeight="300" MinWidth="460">
+    <Window.Resources>
+        <Style x:Key="IconButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Width" Value="40" />
+            <Setter Property="Height" Value="44" />
+            <Setter Property="Margin" Value="5,0" />
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.4" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="5*" />
@@ -25,20 +39,34 @@
         </ListBox>
 
         <StackPanel Grid.Column="1" Grid.RowSpan="2" TextBlock.FontSize="14">
-            <TextBlock Text="Выбранный элемент" />
             <Label Content="_Модель" Target="{Binding ElementName=titleView}" Padding="0" />
             <TextBox x:Name="titleView" />
             <Label Content="_Производитель" Target="{Binding ElementName=companyView}" Padding="0" />
             <TextBox x:Name="companyView" />
             <Label Content="_Цена" Target="{Binding ElementName=priceView}" Padding="0" />
             <TextBox x:Name="priceView" />
+
+            <UniformGrid x:Name="editActions" Columns="2" Margin="0,20,0,0" Visibility="Collapsed">
+                <Button x:Name="cancelEditButton" Content="Отмена" HorizontalAlignment="Center"
+                        Padding="4,0" Click="CancelEditButton_Click" />
+                <Button x:Name="saveEditButton" Content="Сохранить" HorizontalAlignment="Center"
+                        Padding="4,0" Click="SaveEditButton_Click" />
+            </UniformGrid>
         </StackPanel>
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal">
-            <Button Content="+" Width="40" Margin="5" Click="AddButton_Click"
-                    AutomationProperties.Name="Добавить телефон" />
-            <Button Content="-" Width="40" Margin="5" Click="RemoveButton_Click"
-                    AutomationProperties.Name="Удалить выбранный телефон" />
+        <StackPanel x:Name="phoneButtons" Grid.Row="1" Orientation="Horizontal">
+            <Button x:Name="addButton" Style="{StaticResource IconButtonStyle}" Click="AddButton_Click"
+                    AutomationProperties.Name="Добавить телефон" ToolTip="Добавить телефон">
+                <Image Source="Images/add.png" Width="40" Height="40" />
+            </Button>
+            <Button x:Name="editButton" Style="{StaticResource IconButtonStyle}" Click="EditButton_Click"
+                    AutomationProperties.Name="Редактировать телефон" ToolTip="Редактировать телефон">
+                <Image Source="Images/edit.png" Width="40" Height="40" />
+            </Button>
+            <Button x:Name="removeButton" Style="{StaticResource IconButtonStyle}" Click="RemoveButton_Click"
+                    AutomationProperties.Name="Удалить выбранный телефон" ToolTip="Удалить выбранный телефон">
+                <Image Source="Images/delete.png" Width="40" Height="40" />
+            </Button>
         </StackPanel>
     </Grid>
 </Window>

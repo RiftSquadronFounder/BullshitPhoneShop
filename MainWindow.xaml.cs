@@ -5,6 +5,7 @@ namespace BullshitPhoneShop
     public partial class MainWindow : Window
     {
         private readonly List<Phone> phones;
+        private Phone? editingPhone;
 
         public MainWindow()
         {
@@ -23,24 +24,77 @@ namespace BullshitPhoneShop
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
-            string title = titleView.Text.Trim();
-            string company = companyView.Text.Trim();
+            if (!TryReadPhoneFields(out string title, out string company, out decimal price))
+                return;
+
+            phones.Add(new Phone { Title = title, Company = company, Price = price });
+            RefreshList();
+            ClearPhoneFields();
+        }
+
+        private void EditButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (mainListBox.SelectedItem is not Phone phone)
+                return;
+
+            editingPhone = phone;
+            titleView.Text = phone.Title;
+            companyView.Text = phone.Company;
+            priceView.Text = phone.Price.ToString();
+
+            mainListBox.IsEnabled = false;
+            phoneButtons.IsEnabled = false;
+            editActions.Visibility = Visibility.Visible;
+            titleView.Focus();
+        }
+
+        private void CancelEditButton_Click(object sender, RoutedEventArgs e) => EndEditing();
+
+        private void SaveEditButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (editingPhone is null || !TryReadPhoneFields(out string title, out string company, out decimal price))
+                return;
+
+            editingPhone.Title = title;
+            editingPhone.Company = company;
+            editingPhone.Price = price;
+            RefreshList();
+            EndEditing();
+        }
+
+        private void EndEditing()
+        {
+            editingPhone = null;
+            ClearPhoneFields();
+            mainListBox.IsEnabled = true;
+            phoneButtons.IsEnabled = true;
+            editActions.Visibility = Visibility.Collapsed;
+            mainListBox.Focus();
+        }
+
+        private bool TryReadPhoneFields(out string title, out string company, out decimal price)
+        {
+            title = titleView.Text.Trim();
+            company = companyView.Text.Trim();
+            price = 0;
 
             if (title.Length == 0 || company.Length == 0)
             {
                 MessageBox.Show(this, "Укажите модель и производителя.", Title);
-                return;
+                return false;
             }
 
-            if (!decimal.TryParse(priceView.Text, out decimal price) || price < 0)
+            if (!decimal.TryParse(priceView.Text, out price) || price < 0)
             {
                 MessageBox.Show(this, "Укажите корректную цену.", Title);
-                return;
+                return false;
             }
 
-            phones.Add(new Phone { Title = title, Company = company, Price = price });
-            RefreshList();
+            return true;
+        }
 
+        private void ClearPhoneFields()
+        {
             titleView.Clear();
             companyView.Clear();
             priceView.Clear();
