@@ -1,35 +1,37 @@
+using System.IO;
 using System.Windows;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace BullshitPhoneShop
 {
     public partial class MainWindow : Window
     {
-        private readonly List<Phone> phones;
         private Phone? editingPhone;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            phones = new List<Phone>
+            phoneButtons.IsEnabled = TryDatabaseAction(() =>
             {
-                new Phone { Title = "iPhone 10", Company = "Apple", Price = 58000 },
-                new Phone { Title = "Redmi Note 10S", Company = "Xiaomi", Price = 28000 },
-                new Phone { Title = "iPhone 12 Pro Max Super Idol", Company = "Apple", Price = 158000 },
-                new Phone { Title = "3310", Company = "Nokia", Price = 800 }
-            };
-
-            mainListBox.ItemsSource = phones;
+                DatabaseControl.InitializeDatabase();
+                companyView.ItemsSource = DatabaseControl.GetCompanies();
+                RefreshList();
+            });
         }
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!TryReadPhoneFields(out string title, out string company, out decimal price))
+            if (!TryReadPhoneFields(out string title, out int companyId, out decimal price))
                 return;
 
-            phones.Add(new Phone { Title = title, Company = company, Price = price });
-            RefreshList();
-            ClearPhoneFields();
+            var phone = new Phone { Title = title, CompanyId = companyId, Price = price };
+            if (TryDatabaseAction(() => DatabaseControl.AddPhone(phone)))
+            {
+                ClearPhoneFields();
+                TryDatabaseAction(RefreshList);
+            }
         }
 
         private void EditButton_Click(object sender, RoutedEventArgs e)
@@ -39,7 +41,7 @@ namespace BullshitPhoneShop
 
             editingPhone = phone;
             titleView.Text = phone.Title;
-            companyView.Text = phone.Company;
+            companyView.SelectedValue = phone.CompanyId;
             priceView.Text = phone.Price.ToString();
 
             mainListBox.IsEnabled = false;
@@ -52,14 +54,22 @@ namespace BullshitPhoneShop
 
         private void SaveEditButton_Click(object sender, RoutedEventArgs e)
         {
-            if (editingPhone is null || !TryReadPhoneFields(out string title, out string company, out decimal price))
+            if (editingPhone is null || !TryReadPhoneFields(out string title, out int companyId, out decimal price))
                 return;
 
-            editingPhone.Title = title;
-            editingPhone.Company = company;
-            editingPhone.Price = price;
-            RefreshList();
-            EndEditing();
+            var phone = new Phone
+            {
+                Id = editingPhone.Id,
+                Title = title,
+                CompanyId = companyId,
+                Price = price
+            };
+
+            if (TryDatabaseAction(() => DatabaseControl.UpdatePhone(phone)))
+            {
+                EndEditing();
+                TryDatabaseAction(RefreshList);
+            }
         }
 
         private void EndEditing()
@@ -72,15 +82,15 @@ namespace BullshitPhoneShop
             mainListBox.Focus();
         }
 
-        private bool TryReadPhoneFields(out string title, out string company, out decimal price)
+        private bool TryReadPhoneFields(out string title, out int companyId, out decimal price)
         {
             title = titleView.Text.Trim();
-            company = companyView.Text.Trim();
+            companyId = 0;
             price = 0;
 
-            if (title.Length == 0 || company.Length == 0)
+            if (title.Length == 0 || companyView.SelectedItem is not Company company)
             {
-                MessageBox.Show(this, "Укажите модель и производителя.", Title);
+                MessageBox.Show(this, "Укажите модель и выберите производителя.", Title);
                 return false;
             }
 
@@ -90,29 +100,43 @@ namespace BullshitPhoneShop
                 return false;
             }
 
+            companyId = company.Id;
             return true;
         }
 
         private void ClearPhoneFields()
         {
             titleView.Clear();
-            companyView.Clear();
+            companyView.SelectedIndex = -1;
             priceView.Clear();
         }
 
         private void RemoveButton_Click(object sender, RoutedEventArgs e)
         {
-            if (mainListBox.SelectedItem is Phone phone)
-            {
-                phones.Remove(phone);
-                RefreshList();
-            }
+            if (mainListBox.SelectedItem is Phone phone &&
+                TryDatabaseAction(() => DatabaseControl.RemovePhone(phone.Id)))
+                TryDatabaseAction(RefreshList);
         }
 
         private void RefreshList()
         {
-            mainListBox.ItemsSource = null;
-            mainListBox.ItemsSource = phones;
+            mainListBox.ItemsSource = DatabaseControl.GetPhonesForView();
+        }
+
+        private bool TryDatabaseAction(Action action)
+        {
+            try
+            {
+                action();
+                return true;
+            }
+            catch (Exception error) when (error is NpgsqlException or DbUpdateException or TimeoutException
+                or ArgumentException or IOException or UnauthorizedAccessException)
+            {
+                MessageBox.Show("Не удалось выполнить запрос к PostgreSQL. Проверьте сервер и параметры подключения в .env.",
+                    Title, MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
         }
     }
 }

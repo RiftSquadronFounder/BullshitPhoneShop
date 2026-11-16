@@ -31,7 +31,7 @@
                 <DataTemplate>
                     <StackPanel Margin="9,7">
                         <TextBlock Text="{Binding Title}" FontSize="18" TextWrapping="Wrap" />
-                        <TextBlock Text="{Binding Company}" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding CompanyEntity.Title}" TextWrapping="Wrap" />
                         <TextBlock Text="{Binding Price}" />
                     </StackPanel>
                 </DataTemplate>
@@ -42,7 +42,13 @@
             <Label Content="_Модель" Target="{Binding ElementName=titleView}" Padding="0" />
             <TextBox x:Name="titleView" />
             <Label Content="_Производитель" Target="{Binding ElementName=companyView}" Padding="0" />
-            <TextBox x:Name="companyView" />
+            <ComboBox x:Name="companyView" SelectedValuePath="Id">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Title}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
             <Label Content="_Цена" Target="{Binding ElementName=priceView}" Padding="0" />
             <TextBox x:Name="priceView" />
 
