@@ -1,0 +1,13 @@
+<Window x:Class="BullshitPhoneShop.EditWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:BullshitPhoneShop"
+        Title="Редактирование" Width="385" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+    <StackPanel Margin="16,24,16,20">
+        <TextBlock Text="Редактирование" FontSize="22" HorizontalAlignment="Center" Margin="0,0,0,28" />
+        <local:PhoneForm x:Name="phoneForm" />
+        <Button x:Name="submitButton" Content="Изменить" Height="42" Margin="44,32,44,0"
+                IsDefault="True" Click="SaveEditButton_Click" />
+    </StackPanel>
+</Window>

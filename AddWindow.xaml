@@ -1,0 +1,13 @@
+<Window x:Class="BullshitPhoneShop.AddWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:BullshitPhoneShop"
+        Title="Добавление" Width="385" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+    <StackPanel Margin="16,24,16,20">
+        <TextBlock Text="Добавление" FontSize="22" HorizontalAlignment="Center" Margin="0,0,0,28" />
+        <local:PhoneForm x:Name="phoneForm" />
+        <Button x:Name="submitButton" Content="Добавить" Height="42" Margin="44,32,44,0"
+                IsDefault="True" Click="AddPhoneButton_Click" />
+    </StackPanel>
+</Window>
