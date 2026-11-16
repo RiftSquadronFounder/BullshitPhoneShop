@@ -13,10 +13,8 @@ namespace BullshitPhoneShop
             if (context.Database.EnsureCreated())
                 return;
 
+            context.EnsurePhoneDetailsColumns();
             using var transaction = context.Database.BeginTransaction();
-            context.Database.ExecuteSqlRaw(
-                "ALTER TABLE \"Phones\" ADD COLUMN IF NOT EXISTS \"Definition\" text NOT NULL DEFAULT '', " +
-                $"ADD COLUMN IF NOT EXISTS \"Image\" text NOT NULL DEFAULT '{Phone.DefaultImage}'");
 
             var samples = DbAppContext.SamplePhones.ToDictionary(phone => phone.Id);
             int[] sampleIds = samples.Keys.ToArray();

@@ -1,5 +1,9 @@
 using System.IO;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql;
 
 namespace BullshitPhoneShop
 {
@@ -40,6 +44,51 @@ namespace BullshitPhoneShop
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             => optionsBuilder.UseNpgsql(GetConnectionString());
+
+        internal void EnsurePhoneDetailsColumns()
+        {
+            try
+            {
+                AddMissingPhoneDetailsColumns();
+            }
+            catch (PostgresException error) when (error.SqlState == PostgresErrorCodes.DuplicateColumn)
+            {
+                AddMissingPhoneDetailsColumns();
+            }
+        }
+
+        private void AddMissingPhoneDetailsColumns()
+        {
+            var phone = Model.FindEntityType(typeof(Phone));
+            var migration = new MigrationBuilder(Database.ProviderName);
+
+            AddIfMissing(nameof(Phone.Definition), Phones.Select(item => item.Definition));
+            AddIfMissing(nameof(Phone.Image), Phones.Select(item => item.Image));
+            if (migration.Operations.Count == 0)
+                return;
+
+            var commands = this.GetService<IMigrationsSqlGenerator>().Generate(migration.Operations, Model);
+            this.GetService<IMigrationCommandExecutor>().ExecuteNonQuery(commands, this.GetService<IRelationalConnection>());
+
+            void AddIfMissing(string propertyName, IQueryable<string> column)
+            {
+                try
+                {
+                    column.Take(1).ToList();
+                }
+                catch (PostgresException error) when (error.SqlState == PostgresErrorCodes.UndefinedColumn)
+                {
+                    var property = phone.FindProperty(propertyName);
+                    migration.AddColumn<string>(
+                        name: property.GetColumnName(),
+                        table: phone.GetTableName(),
+                        schema: phone.GetSchema(),
+                        type: property.GetColumnType(),
+                        nullable: property.IsNullable,
+                        defaultValue: property.GetDefaultValue());
+                }
+            }
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
