@@ -1,3 +1,5 @@
+using BullshitPhoneShop.db;
+using BullshitPhoneShop.Models;
 using System.Windows;
 
 namespace BullshitPhoneShop

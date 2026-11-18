@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows.Media.Imaging;
 
-namespace BullshitPhoneShop
+namespace BullshitPhoneShop.db
 {
     internal static class PhoneImages
     {

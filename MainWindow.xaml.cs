@@ -1,3 +1,5 @@
+using BullshitPhoneShop.db;
+using BullshitPhoneShop.Models;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;

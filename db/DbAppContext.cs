@@ -1,11 +1,12 @@
 using System.IO;
+using BullshitPhoneShop.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
 
-namespace BullshitPhoneShop
+namespace BullshitPhoneShop.db
 {
     public class DbAppContext : DbContext
     {
@@ -45,53 +46,12 @@ namespace BullshitPhoneShop
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             => optionsBuilder.UseNpgsql(GetConnectionString());
 
-        internal void EnsurePhoneDetailsColumns()
-        {
-            try
-            {
-                AddMissingPhoneDetailsColumns();
-            }
-            catch (PostgresException error) when (error.SqlState == PostgresErrorCodes.DuplicateColumn)
-            {
-                AddMissingPhoneDetailsColumns();
-            }
-        }
+        
 
-        private void AddMissingPhoneDetailsColumns()
-        {
-            var phone = Model.FindEntityType(typeof(Phone));
-            var migration = new MigrationBuilder(Database.ProviderName);
-
-            AddIfMissing(nameof(Phone.Definition), Phones.Select(item => item.Definition));
-            AddIfMissing(nameof(Phone.Image), Phones.Select(item => item.Image));
-            if (migration.Operations.Count == 0)
-                return;
-
-            var commands = this.GetService<IMigrationsSqlGenerator>().Generate(migration.Operations, Model);
-            this.GetService<IMigrationCommandExecutor>().ExecuteNonQuery(commands, this.GetService<IRelationalConnection>());
-
-            void AddIfMissing(string propertyName, IQueryable<string> column)
-            {
-                try
-                {
-                    column.Take(1).ToList();
-                }
-                catch (PostgresException error) when (error.SqlState == PostgresErrorCodes.UndefinedColumn)
-                {
-                    var property = phone.FindProperty(propertyName);
-                    migration.AddColumn<string>(
-                        name: property.GetColumnName(),
-                        table: phone.GetTableName(),
-                        schema: phone.GetSchema(),
-                        type: property.GetColumnType(),
-                        nullable: property.IsNullable,
-                        defaultValue: property.GetDefaultValue());
-                }
-            }
-        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
             var companies = modelBuilder.Entity<Company>();
             companies.Property(company => company.Id).UseIdentityByDefaultColumn().HasIdentityOptions(startValue: 5);
             companies.Property(company => company.Title).IsRequired();
@@ -102,6 +62,8 @@ namespace BullshitPhoneShop
                 new Company { Id = 2, Title = "Xiaomi", CEO = "Lei Jun", Capital = 50 },
                 new Company { Id = 3, Title = "Nokia", CEO = "Pekka Lundmark", Capital = 20 },
                 new Company { Id = 4, Title = "Samsung", CEO = "Jong-Hee Han", Capital = 350 });
+
+
 
             var phones = modelBuilder.Entity<Phone>();
             phones.Property(phone => phone.Id).UseIdentityByDefaultColumn().HasIdentityOptions(startValue: 5);
@@ -141,7 +103,7 @@ namespace BullshitPhoneShop
                         continue;
 
                     string value = parts[1];
-                    return value.Length >= 2 && (value[0] is '\'' or '"') && value[0] == value[^1]
+                    return value.Length >= 2 && value[0] is '\'' or '"' && value[0] == value[^1]
                         ? value[1..^1]
                         : value;
                 }

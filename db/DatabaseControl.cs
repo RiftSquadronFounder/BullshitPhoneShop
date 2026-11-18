@@ -1,9 +1,10 @@
 using System.Diagnostics;
 using System.IO;
+using BullshitPhoneShop.Models;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
-namespace BullshitPhoneShop
+namespace BullshitPhoneShop.db
 {
     public static class DatabaseControl
     {
@@ -13,27 +14,6 @@ namespace BullshitPhoneShop
             if (context.Database.EnsureCreated())
                 return;
 
-            context.EnsurePhoneDetailsColumns();
-            using var transaction = context.Database.BeginTransaction();
-
-            var samples = DbAppContext.SamplePhones.ToDictionary(phone => phone.Id);
-            int[] sampleIds = samples.Keys.ToArray();
-            foreach (Phone phone in context.Phones.Where(phone => sampleIds.Contains(phone.Id)))
-            {
-                Phone sample = samples[phone.Id];
-                if (phone.Title != sample.Title || phone.CompanyId != sample.CompanyId)
-                    continue;
-
-                if (string.IsNullOrWhiteSpace(phone.Definition))
-                    phone.Definition = sample.Definition;
-
-                if (string.IsNullOrWhiteSpace(phone.Image) || phone.Image == Phone.DefaultImage
-                    || (Path.GetFileName(phone.Image) == Path.GetFileName(sample.Image) && !File.Exists(phone.Image)))
-                    phone.Image = sample.Image;
-            }
-
-            context.SaveChanges();
-            transaction.Commit();
         }
 
         public static List<Phone> GetPhonesForView()

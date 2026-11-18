@@ -1,6 +1,8 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using BullshitPhoneShop.db;
+using BullshitPhoneShop.Models;
 using Microsoft.Win32;
 
 namespace BullshitPhoneShop

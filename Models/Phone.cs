@@ -1,4 +1,4 @@
-namespace BullshitPhoneShop
+namespace BullshitPhoneShop.Models
 {
     public class Phone
     {
